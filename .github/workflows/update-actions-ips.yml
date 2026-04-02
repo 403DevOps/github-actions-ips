@@ -2,7 +2,7 @@ name: Update GitHub Actions IP list
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 * * * *"   # каждый час
   workflow_dispatch:
 
 jobs:
@@ -25,15 +25,10 @@ jobs:
         run: |
           jq -r '.actions[]' meta.json > actions.txt
 
-      - name: Convert to YAML
-        run: |
-          pip install yq
-          yq -P actions.json > actions.yaml
-
       - name: Commit and push updates
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add actions.json actions.yaml actions.txt || true
+          git add actions.json actions.txt || true
           git commit -m "Update GitHub Actions IPs" || true
           git push || true
