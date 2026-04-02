@@ -1,0 +1,39 @@
+name: Update GitHub Actions IP list
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch GitHub meta
+        run: |
+          curl -s https://api.github.com/meta > meta.json
+
+      - name: Extract 'actions' section as JSON
+        run: |
+          jq '.actions' meta.json > actions.json
+
+      - name: Create clean TXT list (only IPs)
+        run: |
+          jq -r '.actions[]' meta.json > actions.txt
+
+      - name: Convert to YAML
+        run: |
+          pip install yq
+          yq -P actions.json > actions.yaml
+
+      - name: Commit and push updates
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add actions.json actions.yaml actions.txt || true
+          git commit -m "Update GitHub Actions IPs" || true
+          git push || true
